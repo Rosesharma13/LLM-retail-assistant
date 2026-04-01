@@ -1,4 +1,4 @@
-# 🛍️ LLM-Based Intelligent Retail Assistant
+# 🛍️ ShopAI — LLM-Based Intelligent Retail Assistant
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-000000?style=flat&logo=chainlink&logoColor=white)
@@ -99,24 +99,7 @@ Open your browser at **http://localhost:8501** 🎉
 
 ## 📸 Screenshots
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*(Add screenshots of your running app here)*
 
 ## 🔑 Key Learning Outcomes
 
