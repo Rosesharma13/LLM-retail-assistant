@@ -8,7 +8,7 @@
 
 ## 📌 Overview
 
-ShopAI is an end-to-end LLM-powered retail shopping assistant that enables customers to search and discover products using natural language. Built with Google Gemini API for intelligent response generation and MySQL for real-time product database integration.
+LLM-powered retail shopping assistant that enables customers to search and discover products using natural language. Built with Google Gemini API for intelligent response generation and MySQL for real-time product database integration.
 
 ## ✨ Features
 
