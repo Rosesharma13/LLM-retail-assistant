@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 # ── Load environment variables ─────────────────────────────────
 load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY", None)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY", None)
 
 # ── Page config ────────────────────────────────────────────────
 st.set_page_config(
@@ -72,15 +72,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Product Data (replaces MySQL) ──────────────────────────────
+# ── Product Data ───────────────────────────────────────────────
 @st.cache_data
 def load_products():
-    """Load products from CSV or use built-in data."""
-    # Try loading from CSV file if it exists
-    if os.path.exists("products.csv"):
-        return pd.read_csv("products.csv")
-
-    # Built-in sample products (no database needed)
     data = {
         "id": list(range(1, 16)),
         "name": [
@@ -139,10 +133,8 @@ def load_products():
 
 
 def search_products(query: str, category: str = None, max_price: float = None):
-    """Search products from DataFrame."""
     df = load_products()
     query = query.lower()
-
     mask = (
         df["name"].str.lower().str.contains(query, na=False) |
         df["description"].str.lower().str.contains(query, na=False) |
@@ -150,13 +142,10 @@ def search_products(query: str, category: str = None, max_price: float = None):
         df["category"].str.lower().str.contains(query, na=False)
     )
     results = df[mask]
-
     if category and category != "All":
         results = results[results["category"] == category]
-
     if max_price:
         results = results[results["price"] <= max_price]
-
     results = results.sort_values("rating", ascending=False).head(5)
     return results.to_dict("records")
 
@@ -172,14 +161,14 @@ def get_products_by_category(category: str):
     return results.to_dict("records")
 
 
-# ── Gemini AI setup ────────────────────────────────────────────
-def setup_gemini():
-    api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY", None)
-    if not api_key:
+# ── Groq AI setup ──────────────────────────────────────────────
+def setup_client():
+    if not GROQ_API_KEY:
         return None
-    return Groq(api_key=api_key)
+    return Groq(api_key=GROQ_API_KEY)
 
-def get_ai_response(model, user_message: str, products: list, chat_history: list):
+
+def get_ai_response(client, user_message: str, products: list, chat_history: list):
     product_context = ""
     if products:
         product_context = "\n\nRelevant products found:\n"
@@ -194,7 +183,7 @@ def get_ai_response(model, user_message: str, products: list, chat_history: list
 
     system_prompt = f"""You are ShopAI, a friendly retail shopping assistant for an Indian e-commerce store.
 Help customers find products, answer questions about prices and availability, and make recommendations.
-All prices are in Indian Rupees (₹). Be concise and helpful.
+All prices are in Indian Rupees. Be concise and helpful.
 
 Previous conversation:
 {history_text}
@@ -203,8 +192,8 @@ Previous conversation:
 Customer: {user_message}"""
 
     try:
-        response = model.chat.completions.create(
-            model="llama3-8b-8192",
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": system_prompt}],
             max_tokens=512,
             temperature=0.7
@@ -212,6 +201,7 @@ Customer: {user_message}"""
         return response.choices[0].message.content
     except Exception as e:
         return f"I'm sorry, I couldn't process that request. Please try again! Error: {str(e)}"
+
 
 def extract_search_query(user_message: str):
     stop_words = ["i", "want", "need", "looking", "for", "show", "me", "find",
@@ -225,11 +215,11 @@ def extract_search_query(user_message: str):
 # ── Session state ──────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "model" not in st.session_state:
-    st.session_state.model = setup_gemini()
+if "client" not in st.session_state:
+    st.session_state.client = setup_client()
 
 
-# ── UI Layout ──────────────────────────────────────────────────
+# ── UI ─────────────────────────────────────────────────────────
 st.markdown('<p class="header-title">🛍️ ShopAI</p>', unsafe_allow_html=True)
 st.markdown('<p class="header-sub">Your Intelligent Retail Assistant — Ask me anything about our products!</p>', unsafe_allow_html=True)
 
@@ -254,7 +244,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**💡 Try asking:**")
     suggestions = [
-        "Show me laptops under ₹60,000",
+        "Show me laptops under 60000",
         "I need wireless headphones",
         "What shoes do you have?",
         "Best rated electronics",
@@ -271,16 +261,15 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("**Status:**")
-    if st.session_state.model:
+    if st.session_state.client:
         st.success("✅ AI Connected")
     else:
-        st.error("❌ Add GEMINI_API_KEY in Secrets")
+        st.error("❌ Add GROQ_API_KEY in Secrets")
     st.success("✅ Database Ready")
 
 
-# ── Chat Interface ─────────────────────────────────────────────
-chat_container = st.container()
-with chat_container:
+# ── Chat ───────────────────────────────────────────────────────
+with st.container():
     if not st.session_state.messages:
         st.markdown("""
         <div class="chat-message-bot">
@@ -293,9 +282,15 @@ with chat_container:
 
     for message in st.session_state.messages:
         if message["role"] == "user":
-            st.markdown(f'<div class="chat-message-user">{message["content"]}</div><div style="clear:both"></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="chat-message-user">{message["content"]}</div><div style="clear:both"></div>',
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown(f'<div class="chat-message-bot">{message["content"]}</div><div style="clear:both"></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="chat-message-bot">{message["content"]}</div><div style="clear:both"></div>',
+                unsafe_allow_html=True
+            )
             if "products" in message and message["products"]:
                 cols = st.columns(min(3, len(message["products"])))
                 for i, product in enumerate(message["products"][:3]):
@@ -312,6 +307,7 @@ with chat_container:
                             <small>{product['description'][:80]}...</small>
                         </div>
                         """, unsafe_allow_html=True)
+
 
 # ── Input ──────────────────────────────────────────────────────
 if "quick_query" in st.session_state:
@@ -333,26 +329,26 @@ if user_input:
     for i, word in enumerate(words):
         if word in ["under", "below", "within"] and i + 1 < len(words):
             try:
-                price_str = words[i + 1].replace("₹", "").replace(",", "").replace("k", "000")
+                price_str = words[i + 1].replace("rupees", "").replace(",", "").replace("k", "000")
                 max_price = float(price_str)
             except:
                 pass
 
     products = search_products(search_query, max_price=max_price)
 
-    if st.session_state.model:
+    if st.session_state.client:
         with st.spinner("ShopAI is thinking..."):
             response = get_ai_response(
-                st.session_state.model,
+                st.session_state.client,
                 user_input,
                 products,
                 st.session_state.messages[:-1]
             )
     else:
         if products:
-            response = f"I found {len(products)} products matching your search! (Add GEMINI_API_KEY in Streamlit Secrets for full AI responses)"
+            response = f"I found {len(products)} products matching your search! (Add GROQ_API_KEY in Streamlit Secrets for full AI responses)"
         else:
-            response = "I couldn't find exact matches. Try different keywords! (Add GEMINI_API_KEY in Streamlit Secrets for full AI responses)"
+            response = "I couldn't find exact matches. Try different keywords! (Add GROQ_API_KEY in Streamlit Secrets for full AI responses)"
 
     st.session_state.messages.append({
         "role": "assistant",
