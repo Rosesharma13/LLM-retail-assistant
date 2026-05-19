@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -174,17 +174,10 @@ def get_products_by_category(category: str):
 
 # ── Gemini AI setup ────────────────────────────────────────────
 def setup_gemini():
-    if not GEMINI_API_KEY:
+    api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY", None)
+    if not api_key:
         return None
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-      model_name="gemini-2.0-flash-lite",
-        generation_config={
-            "temperature": 0.7,
-            "max_output_tokens": 512,
-        }
-    )
-    return model
+    return Groq(api_key=api_key)
 
 def get_ai_response(model, user_message: str, products: list, chat_history: list):
     product_context = ""
@@ -209,12 +202,16 @@ Previous conversation:
 
 Customer: {user_message}"""
 
-    try:
-        response = model.generate_content(system_prompt)
-        return response.text
+  try:
+        response = model.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": system_prompt}],
+            max_tokens=512,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
     except Exception as e:
         return f"I'm sorry, I couldn't process that request. Please try again! Error: {str(e)}"
-
 
 def extract_search_query(user_message: str):
     stop_words = ["i", "want", "need", "looking", "for", "show", "me", "find",
