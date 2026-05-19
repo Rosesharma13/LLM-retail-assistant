@@ -202,7 +202,7 @@ Previous conversation:
 
 Customer: {user_message}"""
 
-  try:
+    try:
         response = model.chat.completions.create(
             model="llama3-8b-8192",
             messages=[{"role": "user", "content": system_prompt}],
