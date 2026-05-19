@@ -176,16 +176,15 @@ def get_products_by_category(category: str):
 def setup_gemini():
     if not GEMINI_API_KEY:
         return None
-  genai.configure(api_key=GEMINI_API_KEY, transport="rest")
-model = genai.GenerativeModel(
-    model_name="models/gemini-1.5-flash",
-    generation_config={
-        "temperature": 0.7,
-        "max_output_tokens": 512,
-    }
-)
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash-002",
+        generation_config={
+            "temperature": 0.7,
+            "max_output_tokens": 512,
+        }
+    )
     return model
-
 
 def get_ai_response(model, user_message: str, products: list, chat_history: list):
     product_context = ""
