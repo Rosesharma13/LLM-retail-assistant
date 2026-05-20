@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-000000?style=flat&logo=chainlink&logoColor=white)
-![Gemini](https://img.shields.io/badge/Google%20Gemini-4285F4?style=flat&logo=google&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq_API-F55036?style=flat&logo=groq&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white)
 
@@ -10,7 +10,7 @@
 
 ## 📌 Overview
 
-LLM-powered retail shopping assistant that enables customers to search and discover products using natural language. Built with Google Gemini API for intelligent response generation and Pandas for fast in-memory product data management. No database setup required.
+LLM-powered retail shopping assistant that enables customers to search and discover products using natural language. Built with Groq API (LLaMA 3.1) for ultra-fast intelligent responses and Pandas for in-memory product data management. No database setup required.
 
 ## ✨ Features
 
@@ -28,7 +28,7 @@ LLM-powered retail shopping assistant that enables customers to search and disco
 | Technology | Purpose |
 |---|---|
 | **Python** | Core programming language |
-| **Google Gemini API** | LLM for natural language responses |
+| **Groq API (LLaMA 3.1)** | LLM for ultra-fast natural language responses |
 | **Streamlit** | Web interface and deployment |
 | **Pandas** | In-memory product data management |
 | **python-dotenv** | Environment variable management |
@@ -53,35 +53,35 @@ llm-retail-assistant/
 
 ## 🚀 How to Run
 
-### Step 1 — Clone the repository
+### Option A — Live Demo
+Visit directly: **[llm-retail-assistant.streamlit.app](https://llm-retail-assistant.streamlit.app)**
+
+### Option B — Run Locally
+
 ```bash
 git clone https://github.com/Rosesharma13/LLM-retail-assistant.git
 cd LLM-retail-assistant
-```
-
-### Step 2 — Install dependencies
-```bash
 pip install -r requirements.txt
 ```
 
-### Step 3 — Add your Gemini API Key
 Create a `.env` file:
 ```
-GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
-Get your free API key at: https://aistudio.google.com/app/apikey
 
-### Step 4 — Run the app
+Get your free API key at: [console.groq.com](https://console.groq.com)
+
 ```bash
 streamlit run app.py
 ```
-Open your browser at **http://localhost:8501** 🎉
+
+Open **http://localhost:8501** 🎉
 
 ## 💬 Example Queries
 
 | You ask | ShopAI does |
 |---|---|
-| "Show me laptops under ₹60,000" | Searches electronics with price filter |
+| "Show me laptops under 60000" | Searches electronics with price filter |
 | "I need wireless headphones" | Finds all headphone options |
 | "Best rated shoes" | Returns top-rated footwear |
 | "What phones do you have?" | Lists all smartphones |
@@ -89,7 +89,7 @@ Open your browser at **http://localhost:8501** 🎉
 
 ## 🔑 Key Learning Outcomes
 
-- **LLM Integration** — Connecting Google Gemini API for context-aware responses
+- **LLM Integration** — Connecting Groq API for ultra-fast context-aware responses
 - **In-memory Data Pipeline** — Pandas DataFrame replacing traditional database
 - **Conversation Memory** — Managing multi-turn chat history
 - **Streamlit Deployment** — Building and deploying interactive AI web apps
